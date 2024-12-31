@@ -8,24 +8,34 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Subscription extends Model
 {
-    use HasFactory, SoftDeletes; // Add SoftDeletes if you want to keep deleted subscriptions
+    use HasFactory, SoftDeletes;
 
     protected $fillable = [
         'foodbank_id', 'status', 'trial_ends_at', 'subscription_ends_at', 'monthly_fee'
     ];
 
     protected $casts = [
-        'trial_ends_at' => 'datetime',  // Ensure trial_ends_at is cast as a datetime
-        'subscription_ends_at' => 'datetime',  // Ensure subscription_ends_at is cast as a datetime
-        'monthly_fee' => 'decimal:2',  // Ensure monthly_fee is stored with 2 decimal places
+        'trial_ends_at' => 'datetime',
+        'subscription_ends_at' => 'datetime',
+        'monthly_fee' => 'decimal:2',
     ];
 
     /**
-     * Get the foodbank associated with the subscription.
+     * Get the foodbank (User with the role 'foodbank') associated with the subscription.
      */
     public function foodbank()
     {
-        return $this->belongsTo(User::class, 'foodbank_id');
+        return $this->belongsTo(User::class, 'foodbank_id')
+                    ->where('role', 'foodbank');
+    }
+
+    /**
+     * Get the donor (User with the role 'donor') associated with the subscription, if applicable.
+     */
+    public function donor()
+    {
+        return $this->belongsTo(User::class, 'donor_id')
+                    ->where('role', 'donor');
     }
 
     /**

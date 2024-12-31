@@ -22,16 +22,22 @@ class Donation extends Model
     // Relationships
     public function donor()
     {
-        return $this->belongsTo(User::class, 'donor_id');
+        return $this->belongsTo(User::class, 'donor_id')->where('role', 'donor');
     }
 
     public function foodbank()
     {
-        return $this->belongsTo(User::class, 'foodbank_id');
+        return $this->belongsTo(User::class, 'foodbank_id')->where('role', 'foodbank');
     }
 
     public function recipient()
     {
-        return $this->belongsTo(User::class, 'recipient_id');
+        return $this->belongsTo(User::class, 'recipient_id')->where('role', 'recipient');
+    }
+
+    // Optional: Add a method for the admin if needed
+    public function admin()
+    {
+        return $this->belongsTo(User::class, 'admin_id')->where('role', 'admin');
     }
 }
