@@ -4,12 +4,6 @@ use App\Http\Controllers\ProfileController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
-use App\Http\Controllers\Auth\EmailVerificationPromptController;
-
-Route::get('/email/verify', [EmailVerificationPromptController::class, '__invoke'])
-    ->middleware('auth')
-    ->name('verification.notice');
-
 
 Route::get('/', function () {
     return Inertia::render('Welcome', [

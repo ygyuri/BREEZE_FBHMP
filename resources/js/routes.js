@@ -30,4 +30,8 @@ const routes = [
   },
 ];
 
-export default routes;
+export default routes; [
+    { path: '/admin/dashboard', component: AdminDashboard },
+    { path: '/donor/dashboard', component: DonorDashboard },
+    { path: '/foodbank/dashboard', component: FoodbankDashboard },
+  ];
