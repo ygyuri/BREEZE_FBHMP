@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Auth;
 
 class UserController extends Controller
 {
@@ -75,6 +76,8 @@ class UserController extends Controller
             'recipient_type' => 'nullable|in:individual,organization',
             'donor_type' => 'nullable|string|max:255',
             'notes' => 'nullable|string',
+             'status' => 'nullable|in:pending,approved,rejected', // Validate status if it's passed
+
         ]);
 
         if ($validator->fails()) {
@@ -96,6 +99,7 @@ class UserController extends Controller
                 'recipient_type' => $request->input('recipient_type'),
                 'donor_type' => e($request->input('donor_type')),
                 'notes' => e($request->input('notes')),
+                'status' => $request->input('status', 'pending'),
             ]);
 
             Log::info('User created successfully', ['user' => $user]);
@@ -154,6 +158,7 @@ class UserController extends Controller
             'recipient_type' => 'nullable|in:individual,organization',
             'donor_type' => 'nullable|string|max:255',
             'notes' => 'nullable|string',
+            'status' => 'nullable|in:pending,approved,rejected', // Validate status if it's passed
         ]);
 
         if ($validator->fails()) {
@@ -204,4 +209,98 @@ class UserController extends Controller
             return response()->json(['error' => 'Failed to delete user', 'message' => $e->getMessage()], 500);
         }
     }
+
+
+        // Approval for user roles foodbank, donor, recipient
+            public function approveRejectUser(Request $request, $id, $status)
+    {
+        // Ensure that the authenticated user is an admin
+        if (!Auth::user() || Auth::user()->role !== 'admin') {
+            return response()->json(['error' => 'Unauthorized action. Only admins can approve or reject users.'], 403);
+        }
+
+        // Validate that status is one of the accepted values: pending, approved, or rejected
+        $validStatuses = ['pending', 'approved', 'rejected'];
+        if (!in_array($status, $validStatuses)) {
+            return response()->json(['error' => 'Invalid status. Accepted statuses are: pending, approved, rejected.'], 400);
+        }
+
+        try {
+            // Fetch the user from the database
+            $user = User::findOrFail($id);
+
+            // Ensure the user role is one of the roles that require approval
+            if (!in_array($user->role, ['foodbank', 'donor', 'recipient'])) {
+                return response()->json(['error' => 'User does not require approval'], 400);
+            }
+
+            // Check if the status is being updated to the same status (no change needed)
+            if ($user->status === $status) {
+                return response()->json(['message' => "User is already in $status status."], 200);
+            }
+
+            // Update the user's status
+            $user->status = $status;
+            $user->save();
+
+            // Log the status change
+            Log::info("User {$user->id} status changed to $status", ['user' => $user]);
+
+            // Return a success message
+            return response()->json([
+                'message' => "User status changed to $status successfully",
+                'data' => $user
+            ], 200);
+
+        } catch (\Exception $e) {
+            // Log any errors that occur during the process
+            Log::error("Failed to change user status", ['error' => $e->getMessage()]);
+
+            // Return an error message if something goes wrong
+            return response()->json([
+                'error' => 'Failed to change user status',
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+
+
+        public function getFilteredUsersByStatus(Request $request)
+    {
+        // Validate the incoming request to ensure status and role are passed correctly
+        $validated = $request->validate([
+            'role' => 'required|string|in:foodbank,donor,recipient', // Validating the role to be one of foodbank, donor, or recipient
+            'status' => 'nullable|string|in:pending,approved,rejected', // Status is optional but must be one of pending, approved, or rejected
+        ]);
+
+        // Get the role and status from the validated data
+        $role = $validated['role'];
+        $status = $validated['status'] ?? null;
+
+        // Query to filter users based on role and optionally by status
+        $query = User::where('role', $role);
+
+        // If status is provided, filter by status as well
+        if ($status) {
+            $query->where('status', $status);
+        }
+
+        try {
+            // Execute the query and get the filtered results
+            $users = $query->get();
+
+            // Return the filtered users as a JSON response
+            return response()->json(['message' => 'Filtered users fetched successfully', 'data' => $users], 200);
+        } catch (\Exception $e) {
+            // Log any errors and return a failure response
+            Log::error('Failed to fetch filtered users', ['error' => $e->getMessage()]);
+            return response()->json(['error' => 'Failed to fetch filtered users', 'message' => $e->getMessage()], 500);
+        }
+    }
+
+
+
+
+
 }

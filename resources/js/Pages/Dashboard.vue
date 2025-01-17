@@ -1,30 +1,45 @@
 <script setup>
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Head } from '@inertiajs/vue3';
+import SidebarMenu from '@/Layouts/SidebarMenu.vue';
+import { Layout } from 'ant-design-vue';
 </script>
 
 <template>
-    <Head title="Dashboard" />
-
     <AuthenticatedLayout>
-        <template #header>
-            <h2
-                class="text-xl font-semibold leading-tight text-gray-800 dark:text-gray-200"
-            >
-                Dashboard
-            </h2>
-        </template>
+        <Layout style="min-height: 100vh">
+            <!-- Sidebar -->
+            <SidebarMenu />
 
-        <div class="py-12">
-            <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
-                <div
-                    class="overflow-hidden bg-white shadow-sm sm:rounded-lg dark:bg-gray-800"
+            <!-- Main Content Area -->
+            <Layout>
+                <!-- Top Header -->
+                <Layout.Header
+                    style="
+                        background: white;
+                        padding: 0 24px;
+                        display: flex;
+                        align-items: center;
+                    "
                 >
-                    <div class="p-6 text-gray-900 dark:text-gray-100">
-                        You're logged in!
-                    </div>
-                </div>
-            </div>
-        </div>
+                    <h2 class="text-xl font-semibold">Admin Dashboard</h2>
+                </Layout.Header>
+
+                <!-- Content -->
+                <Layout.Content
+                    style="
+                        margin: 24px;
+                        padding: 24px;
+                        background: #fff;
+                        min-height: 360px;
+                    "
+                >
+                    <router-view />
+                </Layout.Content>
+
+                <!-- Footer -->
+                <Layout.Footer style="text-align: center; background: white">
+                    Admin Dashboard ©2025 Created with Laravel & Ant Design Vue
+                </Layout.Footer>
+            </Layout>
+        </Layout>
     </AuthenticatedLayout>
 </template>

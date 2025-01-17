@@ -11,7 +11,7 @@ class Donation extends Model
     use HasFactory, SoftDeletes; // Add SoftDeletes to enable soft deletion
 
     protected $fillable = [
-        'donor_id', 'foodbank_id', 'recipient_id', 'type', 'quantity',
+        'donor_id', 'foodbank_id', 'recipient_id', 'type', 'quantity', 'status',
     ];
 
     protected $casts = [
